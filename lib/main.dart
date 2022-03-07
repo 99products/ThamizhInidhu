@@ -3,9 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp( options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
 }
 
@@ -38,15 +38,17 @@ class MyHomePage extends StatefulWidget {
   final String title;
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
-  static List<String> samplekavidhais=['கரி கவ்விய இருள் பொழுது\nகார் மேகம் சூழ்ந்த பெரும் காடு\n\nசிதறி பறக்கும் மின்மினி\nபதறி பேசிய ஊதா பூ ...\n\nஅந்தோ பாவம் ..   வான் தொலைத்த வின் மீன், வின்துகளாய் சிதறி போகுதே ... \n கொள்ளென்று  சிரித்தது பற்று கொடி , \n"நாளை வீழும் இந்த ஊதா பூ , வின் மீனுக்கு பாவம் பார்த்ததே"...',''];
+  static List<String> samplekavidhais = [
+    'கரி கவ்விய இருள் பொழுது\nகார் மேகம் சூழ்ந்த பெரும் காடு\n\nசிதறி பறக்கும் மின்மினி\nபதறி பேசிய ஊதா பூ ...\n\nஅந்தோ பாவம் ..   வான் தொலைத்த வின் மீன், வின்துகளாய் சிதறி போகுதே ... \n கொள்ளென்று  சிரித்தது பற்று கொடி , \n"நாளை வீழும் இந்த ஊதா பூ , வின் மீனுக்கு பாவம் பார்த்ததே"...',
+    ''
+  ];
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
-
+  final myController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -66,14 +68,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget body(){
-    CollectionReference users = FirebaseFirestore.instance.collection('kavidhaigal');
+  Widget body() {
+    CollectionReference users =
+        FirebaseFirestore.instance.collection('kavidhaigal');
 
     return FutureBuilder<DocumentSnapshot>(
       future: users.doc('value').get(),
       builder:
           (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-
         if (snapshot.hasError) {
           return Text("Something went wrong");
         }
@@ -83,7 +85,8 @@ class _MyHomePageState extends State<MyHomePage> {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+          Map<String, dynamic> data =
+              snapshot.data!.data() as Map<String, dynamic>;
           return buildView(data);
         }
 
@@ -92,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget buildView(Map<String,dynamic> data){
+  Widget buildView(Map<String, dynamic> data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
@@ -102,10 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
         buildViewCard(data),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.arrow_back_ios),
-            Icon(Icons.arrow_forward_ios)
-          ],
+          children: [Icon(Icons.arrow_back_ios), Icon(Icons.arrow_forward_ios)],
         ),
         SizedBox(
           height: 20,
@@ -115,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Card buildInteractCard(Map<String,dynamic> data ) {
+  Card buildInteractCard(Map<String, dynamic> data) {
     return Card(
       margin: EdgeInsets.all(15),
       elevation: 5,
@@ -126,17 +126,21 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Text(
             data['title'],
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,fontFamily:'Arima Madurai'),
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Arima Madurai'),
           ),
           Padding(
               padding: EdgeInsets.all(10),
               child: TextField(
                 maxLines: 5,
+                controller: myController,
                 decoration: InputDecoration(
                   border: new OutlineInputBorder(
                       borderSide: new BorderSide(color: Colors.teal)),
                   hintText: 'மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
-                  helperText: '100 வார்த்தைகளுக்கு மிகாமல் ',
+                  helperText: 'மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
                   labelText: 'உங்களின் கவிதை/சிந்தனை',
                   prefixIcon: const Icon(
                     Icons.edit,
@@ -146,8 +150,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               )),
           ElevatedButton(
-            onPressed: () {},
-            child: Text("உள்ளீட்டு"),
+            onPressed: () {
+              CollectionReference kavidhaigal =
+                  FirebaseFirestore.instance.collection('kavidhaigal');
+              List newentry = [
+                {
+                  'title': data['title'],
+                  'kavidhai': myController.text,
+                  'date': DateTime.now(),
+                }
+              ];
+              kavidhaigal.doc('all').update(
+                  {"data": FieldValue.arrayUnion(newentry)}).then((value) {
+                setState(() {
+                  myController.clear();
+                });
+              }).catchError((error) => print("Failed to add user: $error"));
+            },
+            child: Text("சமர்ப்பி"),
           ),
           SizedBox(
             height: 20,
@@ -157,32 +177,28 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget buildViewCard(Map<String,dynamic> data) {
-    return
-      SizedBox(
+  Widget buildViewCard(Map<String, dynamic> data) {
+    return SizedBox(
         width: 500.0,
-        child:
-        Card(
-        elevation: 5,
-        margin: EdgeInsets.all(15),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: 10,
-            ),
-        Padding(
-          padding: EdgeInsets.all(10),
-            child:
-            Text(
-              data['old'][0].replaceAll("\\n", "\n"),
-            ),),
-            SizedBox(
-              height: 20,
-            )
-          ],
-        )));
+        child: Card(
+            elevation: 5,
+            margin: EdgeInsets.all(15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 10,
+                ),
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Text(
+                    data['old'][0].replaceAll("\\n", "\n"),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                )
+              ],
+            )));
   }
-
-
 }
