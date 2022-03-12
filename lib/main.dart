@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -61,9 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Center(child: Text(widget.title)),
       ),
-      body: body(),
+      body: SingleChildScrollView(child: body()),
       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
@@ -99,15 +101,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        SizedBox(
+        const SizedBox(
           height: 30,
         ),
         buildViewCard(data),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [Icon(Icons.arrow_back_ios), Icon(Icons.arrow_forward_ios)],
-        ),
-        SizedBox(
+        const SizedBox(
           height: 20,
         ),
         buildInteractCard(data),
@@ -195,9 +193,18 @@ class _MyHomePageState extends State<MyHomePage> {
                     data['old'][0].replaceAll("\\n", "\n"),
                   ),
                 ),
-                SizedBox(
-                  height: 20,
-                )
+                const SizedBox(
+                  height: 10,
+                ),
+                InkWell(
+                    onTap: () {},
+                    child: const Text(
+                      "மேலும் படிக்க...",
+                      style: TextStyle(color: Colors.blue),
+                    )),
+                const SizedBox(
+                  height: 10,
+                ),
               ],
             )));
   }

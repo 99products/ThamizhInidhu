@@ -1,6 +1,6 @@
-# howtonameit
+# thamizhinidhu
 
-Thamizh kavidhai
+Thamizh Valarpom
 
 ## Getting Started
 

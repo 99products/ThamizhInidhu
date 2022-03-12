@@ -1,11 +1,11 @@
 {
-    "name": "howtonameit",
-    "short_name": "howtonameit",
+    "name": "thamizhinidhu",
+    "short_name": "thamizhinidhu",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Thamizh kavidhai",
+    "description": "Thamizh Valarpom",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
