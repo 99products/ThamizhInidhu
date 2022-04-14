@@ -63,7 +63,8 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Center(child: Text(widget.title)),
+        title: Text(widget.title),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(child: body()),
       // This trailing comma makes auto-formatting nicer for build methods.
@@ -81,7 +82,6 @@ class _MyHomePageState extends State<MyHomePage> {
         if (snapshot.hasError) {
           return Text("Something went wrong");
         }
-
         if (snapshot.hasData && !snapshot.data!.exists) {
           return Text("Document does not exist");
         }
@@ -91,8 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
               snapshot.data!.data() as Map<String, dynamic>;
           return buildView(data);
         }
-
-        return Text("loading");
+        return const Center(child: Text("வாழ்க தமிழ்!! வளர்க தமிழ்!!"));
       },
     );
   }
@@ -102,11 +101,11 @@ class _MyHomePageState extends State<MyHomePage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         const SizedBox(
-          height: 30,
+          height: 10,
         ),
         buildViewCard(data),
         const SizedBox(
-          height: 20,
+          height: 10,
         ),
         buildInteractCard(data),
       ],
@@ -132,15 +131,18 @@ class _MyHomePageState extends State<MyHomePage> {
           Padding(
               padding: EdgeInsets.all(10),
               child: TextField(
-                maxLines: 5,
+                maxLines: 8,
                 controller: myController,
-                decoration: InputDecoration(
-                  border: new OutlineInputBorder(
-                      borderSide: new BorderSide(color: Colors.teal)),
-                  hintText: 'மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
-                  helperText: 'மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.teal)),
+                  hintText:
+                      'உங்கள் சிந்தனைக்கு ஒரு சவால்! மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                  helperText:
+                      'உங்கள் சிந்தனைக்கு ஒரு சவால்! மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                  helperStyle: TextStyle(fontSize: 10),
                   labelText: 'உங்களின் கவிதை/சிந்தனை',
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.edit,
                     color: Colors.green,
                   ),
@@ -184,13 +186,19 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
+                const SizedBox(
+                  height: 10,
+                ),
+                Center(
+                    child: Text(data['old'][0]['title'].replaceAll("\\n", "\n"),
+                        style: const TextStyle(fontWeight: FontWeight.bold))),
+                const SizedBox(
                   height: 10,
                 ),
                 Padding(
                   padding: EdgeInsets.all(10),
                   child: Text(
-                    data['old'][0].replaceAll("\\n", "\n"),
+                    data['old'][0]['kavidhai'].replaceAll("\\n", "\n"),
                   ),
                 ),
                 const SizedBox(
