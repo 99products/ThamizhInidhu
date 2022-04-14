@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:thamizhinidhu/list.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -29,9 +31,23 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch:
+            // Colors.red,
+
+            MaterialColor(0xFFa02725, <int, Color>{
+          50: Color(0xFFE3F2FD),
+          100: Color(0xFFBBDEFB),
+          200: Color(0xFF90CAF9),
+          300: Color(0xFF64B5F6),
+          400: Color(0xFFa02725),
+          600: Color(0xFF1E88E5),
+          700: Color(0xFF1976D2),
+          800: Color(0xFF1565C0),
+          500: Color(0xFF932020),
+          900: Color(0xFFb2102f)
+        }),
       ),
-      home: const MyHomePage(title: 'தமிழ்   இனிது'),
+      home: const MyHomePage(title: 'தமிழ் இனிது'),
     );
   }
 }
@@ -66,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(child: body()),
+      body: body(),
       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
@@ -97,19 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildView(Map<String, dynamic> data) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        const SizedBox(
-          height: 10,
-        ),
-        buildViewCard(data),
-        const SizedBox(
-          height: 10,
-        ),
-        buildInteractCard(data),
-      ],
-    );
+    return buildList(data);
   }
 
   Card buildInteractCard(Map<String, dynamic> data) {
@@ -137,10 +141,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   border: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.teal)),
                   hintText:
-                      'உங்கள் சிந்தனைக்கு ஒரு சவால்! மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                      'உங்கள் சிந்தனைக்கு ஒரு சவால்!! 3 வார்த்தைகளை இணைத்து ஒரு கவிதை',
                   helperText:
-                      'உங்கள் சிந்தனைக்கு ஒரு சவால்! மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
-                  helperStyle: TextStyle(fontSize: 10),
+                      'உங்கள் சிந்தனைக்கு ஒரு சவால்!! 3 வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                  helperStyle: TextStyle(fontSize: 8),
                   labelText: 'உங்களின் கவிதை/சிந்தனை',
                   prefixIcon: Icon(
                     Icons.edit,
@@ -149,31 +153,110 @@ class _MyHomePageState extends State<MyHomePage> {
                   prefixText: ' ',
                 ),
               )),
-          ElevatedButton(
-            onPressed: () {
-              CollectionReference kavidhaigal =
-                  FirebaseFirestore.instance.collection('kavidhaigal');
-              List newentry = [
-                {
-                  'title': data['title'],
-                  'kavidhai': myController.text,
-                  'date': DateTime.now(),
-                }
-              ];
-              kavidhaigal.doc('all').update(
-                  {"data": FieldValue.arrayUnion(newentry)}).then((value) {
-                setState(() {
-                  myController.clear();
-                });
-              }).catchError((error) => print("Failed to add user: $error"));
-            },
-            child: Text("சமர்ப்பி"),
-          ),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Container(
+                width: 130,
+                height: 40,
+                child: ElevatedButton(
+                  onPressed: () {
+                    CollectionReference kavidhaigal =
+                        FirebaseFirestore.instance.collection('kavidhaigal');
+                    List newentry = [
+                      {
+                        'title': data['title'],
+                        'kavidhai': myController.text,
+                        'date': DateTime.now(),
+                      }
+                    ];
+                    kavidhaigal
+                        .doc('all')
+                        .update({"data": FieldValue.arrayUnion(newentry)}).then(
+                            (value) {
+                      setState(() {
+                        myController.clear();
+                      });
+                      showAlertDialog(context);
+                    }).catchError(
+                            (error) => print("Failed to add user: $error"));
+                  },
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.send),
+                        SizedBox(
+                          width: 6,
+                        ),
+                        Text("சமர்ப்பி")
+                      ]),
+                )),
+            SizedBox(
+              width: 10,
+            ),
+            Container(
+                width: 130,
+                height: 40,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Share.share(
+                        'உங்கள் தமிழ் சிந்தனைக்கு ஒரு சவால், இந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக\n\n' +
+                            data['title'] +
+                            '\n\nhttps://thamizh-inidhu.web.app/');
+                  },
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.share),
+                        SizedBox(
+                          width: 6,
+                        ),
+                        Text("பகிர்")
+                      ]),
+                )),
+          ]),
           SizedBox(
             height: 20,
           )
         ],
       ),
+    );
+  }
+
+  showAlertDialog(BuildContext context) {
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("சரி"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("நன்றி"),
+      content: Text(
+          "சரி பார்க்கப்பட்டு தேர்ந்து எடுக்க பட்ட கவிதை இந்த பக்கத்தில் நாளை வரும்"),
+      actions: [
+        okButton,
+      ],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  Widget buildList(Map<String, dynamic> data) {
+    return ListView.builder(
+      itemCount: data['shortlisted'].length + 1,
+      itemBuilder: (BuildContext context, int index) {
+        return index == 0
+            ? buildInteractCard(data)
+            : buildViewCard(data['shortlisted'][index - 1]);
+        //ListItem
+      },
     );
   }
 
@@ -184,32 +267,28 @@ class _MyHomePageState extends State<MyHomePage> {
             elevation: 5,
             margin: EdgeInsets.all(15),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(
                   height: 10,
                 ),
                 Center(
-                    child: Text(data['old'][0]['title'].replaceAll("\\n", "\n"),
-                        style: const TextStyle(fontWeight: FontWeight.bold))),
+                    child: Text(data['title'].replaceAll("\\n", "\n"),
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Arima Madurai'))),
                 const SizedBox(
                   height: 10,
                 ),
                 Padding(
                   padding: EdgeInsets.all(10),
                   child: Text(
-                    data['old'][0]['kavidhai'].replaceAll("\\n", "\n"),
+                    data['kavidhai'].replaceAll("\\n", "\n"),
                   ),
                 ),
                 const SizedBox(
                   height: 10,
                 ),
-                InkWell(
-                    onTap: () {},
-                    child: const Text(
-                      "மேலும் படிக்க...",
-                      style: TextStyle(color: Colors.blue),
-                    )),
                 const SizedBox(
                   height: 10,
                 ),
