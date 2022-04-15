@@ -165,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       {
                         'title': data['title'],
                         'kavidhai': myController.text,
-                        'date': DateTime.now(),
+                        'time': DateTime.now(),
                       }
                     ];
                     kavidhaigal
@@ -249,12 +249,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildList(Map<String, dynamic> data) {
+    dynamic shortlisted = data['shortlisted'];
     return ListView.builder(
-      itemCount: data['shortlisted'].length + 1,
+      itemCount: shortlisted.length + 1,
       itemBuilder: (BuildContext context, int index) {
         return index == 0
             ? buildInteractCard(data)
-            : buildViewCard(data['shortlisted'][index - 1]);
+            : buildViewCard(shortlisted[shortlisted.length - index]);
         //ListItem
       },
     );
