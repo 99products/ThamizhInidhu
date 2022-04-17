@@ -88,35 +88,31 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget body() {
-    CollectionReference users =
-        FirebaseFirestore.instance.collection('kavidhaigal');
+    CollectionReference kavidhaigal =
+        FirebaseFirestore.instance.collection('shortlisted');
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: users.doc('value').get(),
-      builder:
-          (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+    return FutureBuilder<QuerySnapshot>(
+      future: kavidhaigal.orderBy('likes', descending: true).get(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
           return Text("Something went wrong");
         }
-        if (snapshot.hasData && !snapshot.data!.exists) {
-          return Text("Document does not exist");
-        }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> data =
-              snapshot.data!.data() as Map<String, dynamic>;
-          return buildView(data);
+          // Map<String, dynamic> data =
+          //     snapshot.data!.data() as Map<String, dynamic>;
+          return buildView(snapshot.data!.docs);
         }
         return const Center(child: Text("வாழ்க தமிழ்!! வளர்க தமிழ்!!"));
       },
     );
   }
 
-  Widget buildView(Map<String, dynamic> data) {
+  Widget buildView(List<QueryDocumentSnapshot> data) {
     return buildList(data);
   }
 
-  Card buildInteractCard(Map<String, dynamic> data) {
+  Card buildInteractCard(String title) {
     return Card(
       margin: EdgeInsets.all(15),
       elevation: 5,
@@ -126,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
             height: 20,
           ),
           Text(
-            data['title'],
+            title,
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -154,30 +150,25 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               )),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(
+            SizedBox(
                 width: 130,
                 height: 40,
                 child: ElevatedButton(
                   onPressed: () {
                     CollectionReference kavidhaigal =
-                        FirebaseFirestore.instance.collection('kavidhaigal');
-                    List newentry = [
-                      {
-                        'title': data['title'],
-                        'kavidhai': myController.text,
-                        'time': DateTime.now(),
-                      }
-                    ];
-                    kavidhaigal
-                        .doc('all')
-                        .update({"data": FieldValue.arrayUnion(newentry)}).then(
-                            (value) {
+                        FirebaseFirestore.instance.collection('all');
+
+                    kavidhaigal.add({
+                      'title': title,
+                      'kavidhai': myController.text,
+                      'time': DateTime.now(),
+                    }).then((value) {
                       setState(() {
                         myController.clear();
                       });
                       showAlertDialog(context);
                     }).catchError(
-                            (error) => print("Failed to add user: $error"));
+                        (error) => print("Failed to add user: $error"));
                   },
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -199,7 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: () {
                     Share.share(
                         'உங்கள் தமிழ் சிந்தனைக்கு ஒரு சவால், இந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக\n\n' +
-                            data['title'] +
+                            title +
                             '\n\nhttps://thamizh-inidhu.web.app/');
                   },
                   child: Row(
@@ -248,20 +239,19 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget buildList(Map<String, dynamic> data) {
-    dynamic shortlisted = data['shortlisted'];
+  Widget buildList(List<QueryDocumentSnapshot> data) {
     return ListView.builder(
-      itemCount: shortlisted.length + 1,
+      itemCount: data.length,
       itemBuilder: (BuildContext context, int index) {
         return index == 0
-            ? buildInteractCard(data)
-            : buildViewCard(shortlisted[shortlisted.length - index]);
+            ? buildInteractCard(data[0].get('title'))
+            : buildViewCard(data[index]);
         //ListItem
       },
     );
   }
 
-  Widget buildViewCard(Map<String, dynamic> data) {
+  Widget buildViewCard(QueryDocumentSnapshot data) {
     return SizedBox(
         width: 500.0,
         child: Card(
@@ -273,7 +263,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   height: 10,
                 ),
                 Center(
-                    child: Text(data['title'].replaceAll("\\n", "\n"),
+                    child: Text(data.get('title').replaceAll("\\n", "\n"),
                         style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -284,7 +274,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(
                   padding: EdgeInsets.all(10),
                   child: Text(
-                    data['kavidhai'].replaceAll("\\n", "\n"),
+                    data.get('kavidhai').replaceAll("\\n", "\n"),
                   ),
                 ),
                 const SizedBox(
