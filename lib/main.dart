@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:like_button/like_button.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thamizhinidhu/list.dart';
 import 'firebase_options.dart';
 
@@ -123,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Arima Madurai'),
@@ -172,7 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                      children: const [
                         Icon(Icons.send),
                         SizedBox(
                           width: 6,
@@ -189,13 +192,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: ElevatedButton(
                   onPressed: () {
                     Share.share(
-                        'உங்கள் தமிழ் சிந்தனைக்கு ஒரு சவால், இந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக\n\n' +
+                        'இவ்வாரத்திற்கான சவால், இந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக\n\n' +
                             title +
                             '\n\nhttps://thamizh-inidhu.web.app/');
                   },
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                      children: const [
                         Icon(Icons.share),
                         SizedBox(
                           width: 6,
@@ -204,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ]),
                 )),
           ]),
-          SizedBox(
+          const SizedBox(
             height: 20,
           )
         ],
@@ -240,50 +243,114 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildList(List<QueryDocumentSnapshot> data) {
-    return ListView.builder(
-      itemCount: data.length,
-      itemBuilder: (BuildContext context, int index) {
-        return index == 0
-            ? buildInteractCard(data[0].get('title'))
-            : buildViewCard(data[index]);
-        //ListItem
-      },
-    );
+    return FutureBuilder<SharedPreferences>(
+        future: SharedPreferences.getInstance(),
+        builder:
+            (BuildContext context, AsyncSnapshot<SharedPreferences> snapshot) {
+          if (snapshot.hasData) {
+            SharedPreferences? prefs = snapshot.data;
+            return ListView.builder(
+              itemCount: data.length,
+              itemBuilder: (BuildContext context, int index) {
+                return index == 0
+                    ? buildInteractCard(data[0].get('title'))
+                    : buildViewCard(
+                        data[index],
+                        prefs!.getBool(data[index].id) == null
+                            ? false
+                            : prefs.getBool(data[index].id));
+                //ListItem
+              },
+            );
+          } else {
+            return Text("Error");
+          }
+        });
   }
 
-  Widget buildViewCard(QueryDocumentSnapshot data) {
+  Widget buildViewCard(QueryDocumentSnapshot data, bool? isLiked) {
     return SizedBox(
         width: 500.0,
         child: Card(
             elevation: 5,
             margin: EdgeInsets.all(15),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(
                   height: 10,
                 ),
-                Center(
-                    child: Text(data.get('title').replaceAll("\\n", "\n"),
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Arima Madurai'))),
+                Row(children: [
+                  Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 10, 0),
+                      child: Text(data.get('title').replaceAll("\\n", "\n"),
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Arima Madurai'))),
+                ]),
                 const SizedBox(
                   height: 10,
                 ),
                 Padding(
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.fromLTRB(20, 10, 10, 0),
                   child: Text(
                     data.get('kavidhai').replaceAll("\\n", "\n"),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.normal,
+                        fontFamily: 'Arima Madurai'),
                   ),
                 ),
                 const SizedBox(
                   height: 10,
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Share.share(data.get('title') +
+                              "\n\n" +
+                              data.get('kavidhai').replaceAll("\\n", "\n") +
+                              '\n\nhttps://thamizh-inidhu.web.app/');
+                        },
+                        icon: const Icon(
+                          Icons.share,
+                          color: Colors.black38,
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    LikeButton(
+                      size: 25,
+                      circleSize: 80,
+                      isLiked: isLiked,
+                      padding: const EdgeInsets.all(10),
+                      likeCount: data.get('likes'),
+                      onTap: (isLiked) => onLikeButtonTapped(isLiked, data.id),
+                    )
+                  ],
+                )
               ],
             )));
+  }
+
+  Future<bool> onLikeButtonTapped(bool isLiked, String id) async {
+    /// send your request here
+    // final bool success= await sendRequest();
+
+    /// if failed, you can do nothing
+    // return success? !isLiked:isLiked;
+
+    CollectionReference kavidhaigal =
+        FirebaseFirestore.instance.collection('shortlisted');
+    kavidhaigal
+        .doc(id)
+        .update({'likes': FieldValue.increment(!isLiked ? 1 : -1)});
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(id, !isLiked);
+    return !isLiked;
   }
 }
