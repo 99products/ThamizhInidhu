@@ -24,6 +24,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'தமிழ் இனிது',
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const MyHomePage(title: 'தமிழ் இனிது'),
+        '/shortlist': (context) => const ShortlistPage(title: 'Shortlist')
+      },
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -50,7 +55,6 @@ class MyApp extends StatelessWidget {
           900: Color(0xFFb2102f)
         }),
       ),
-      home: const MyHomePage(title: 'தமிழ் இனிது'),
     );
   }
 }
@@ -93,7 +97,9 @@ class _MyHomePageState extends State<MyHomePage> {
         FirebaseFirestore.instance.collection('shortlisted');
 
     return FutureBuilder<QuerySnapshot>(
-      future: kavidhaigal.orderBy('likes', descending: true).get(),
+      //There is a hack in the backend, where we added large like count and farther future date to get the 'current' entry as first item.
+      // if we change the orderby in future with any other parameter, do note this.
+      future: kavidhaigal.orderBy('time', descending: true).get(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
           return Text("Something went wrong");
@@ -114,6 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 class Kavidhaigal extends StatefulWidget {
   List<QueryDocumentSnapshot> kavidhaigal;
+  bool sortByLikes = false;
 
   Kavidhaigal(this.kavidhaigal);
 
@@ -123,6 +130,7 @@ class Kavidhaigal extends StatefulWidget {
 
 class _KavithaigalState extends State<Kavidhaigal> {
   final myController = TextEditingController();
+  bool sortByLikes = false;
   @override
   Widget build(BuildContext context) {
     return buildList(widget.kavidhaigal);
@@ -179,10 +187,8 @@ class _KavithaigalState extends State<Kavidhaigal> {
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.teal)),
-                    hintText:
-                        'உங்கள் சிந்தனைக்கு ஒரு சவால்!! 3 வார்த்தைகளை இணைத்து ஒரு கவிதை',
-                    helperText:
-                        'உங்கள் சிந்தனைக்கு ஒரு சவால்!! 3 வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                    hintText: 'மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                    helperText: 'மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
                     helperStyle: TextStyle(fontSize: 8),
                     labelText: 'உங்களின் கவிதை/சிந்தனை',
                     prefixIcon: Icon(
@@ -232,7 +238,7 @@ class _KavithaigalState extends State<Kavidhaigal> {
                   child: ElevatedButton(
                     onPressed: () {
                       Share.share(
-                          'இவ்வாரத்திற்கான சவால், இந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக\n\n' +
+                          'கவிதை மீட்டி, தமிழ் வளர்ப்போம்!\nஉனக்குள் இருக்கும் கவிஞனை உசிப்பிட ஒரு அரிய வழி!\n, இந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக\n\n' +
                               title +
                               '\n\nhttps://thamizh-inidhu.web.app/');
                     },
@@ -253,15 +259,48 @@ class _KavithaigalState extends State<Kavidhaigal> {
           ],
         ),
       ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Icon(Icons.arrow_upward),
-          IconButton(onPressed: () {}, icon: Icon(Icons.av_timer_outlined)),
-          SizedBox(width: 10)
-        ],
-      )
+      buildSortWidgets()
     ]);
+  }
+
+  Widget buildSortWidgets() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Icon(
+          Icons.sort_outlined,
+          size: 18,
+        ),
+        const SizedBox(width: 10),
+        buildSortDropDown(),
+        const SizedBox(width: 10)
+      ],
+    );
+  }
+
+  Widget buildSortDropDown() {
+    return DropdownButton<String>(
+      value: sortByLikes ? 'பிரபலம்' : 'சமீபம்',
+      icon: const Icon(Icons.arrow_drop_down),
+      elevation: 16,
+      underline: Container(
+        height: 2,
+        color: Colors.transparent,
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          sortByLikes = (newValue == 'பிரபலம்');
+          sortKavidhaigal();
+        });
+      },
+      items: <String>['சமீபம்', 'பிரபலம்']
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    );
   }
 
   Widget buildViewCard(QueryDocumentSnapshot data, bool? isLiked) {
@@ -348,6 +387,12 @@ class _KavithaigalState extends State<Kavidhaigal> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(id, !isLiked);
     return !isLiked;
+  }
+
+  sortKavidhaigal() {
+    widget.kavidhaigal.sort((a, b) => sortByLikes
+        ? b.get('likes').compareTo(a.get('likes'))
+        : b.get('time').compareTo(a.get('time')));
   }
 
   showAlertDialog(BuildContext context) {
