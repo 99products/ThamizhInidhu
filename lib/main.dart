@@ -69,7 +69,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final myController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -86,7 +85,6 @@ class _MyHomePageState extends State<MyHomePage> {
         centerTitle: true,
       ),
       body: body(),
-      // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -102,8 +100,6 @@ class _MyHomePageState extends State<MyHomePage> {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          // Map<String, dynamic> data =
-          //     snapshot.data!.data() as Map<String, dynamic>;
           return buildView(snapshot.data!.docs);
         }
         return const Center(child: Text("வாழ்க தமிழ்!! வளர்க தமிழ்!!"));
@@ -111,135 +107,25 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget buildView(List<QueryDocumentSnapshot> data) {
-    return buildList(data);
+  Widget buildView(List<QueryDocumentSnapshot> kavidhaigal) {
+    return Kavidhaigal(kavidhaigal);
   }
+}
 
-  Card buildInteractCard(String title) {
-    return Card(
-      margin: EdgeInsets.all(15),
-      elevation: 5,
-      child: Column(
-        children: [
-          SizedBox(
-            height: 20,
-          ),
-          Text(
-            title,
-            style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Arima Madurai'),
-          ),
-          Padding(
-              padding: EdgeInsets.all(10),
-              child: TextField(
-                maxLines: 8,
-                controller: myController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.teal)),
-                  hintText:
-                      'உங்கள் சிந்தனைக்கு ஒரு சவால்!! 3 வார்த்தைகளை இணைத்து ஒரு கவிதை',
-                  helperText:
-                      'உங்கள் சிந்தனைக்கு ஒரு சவால்!! 3 வார்த்தைகளை இணைத்து ஒரு கவிதை',
-                  helperStyle: TextStyle(fontSize: 8),
-                  labelText: 'உங்களின் கவிதை/சிந்தனை',
-                  prefixIcon: Icon(
-                    Icons.edit,
-                    color: Colors.green,
-                  ),
-                  prefixText: ' ',
-                ),
-              )),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            SizedBox(
-                width: 130,
-                height: 40,
-                child: ElevatedButton(
-                  onPressed: () {
-                    CollectionReference kavidhaigal =
-                        FirebaseFirestore.instance.collection('all');
+class Kavidhaigal extends StatefulWidget {
+  List<QueryDocumentSnapshot> kavidhaigal;
 
-                    kavidhaigal.add({
-                      'title': title,
-                      'kavidhai': myController.text,
-                      'time': DateTime.now(),
-                    }).then((value) {
-                      setState(() {
-                        myController.clear();
-                      });
-                      showAlertDialog(context);
-                    }).catchError(
-                        (error) => print("Failed to add user: $error"));
-                  },
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.send),
-                        SizedBox(
-                          width: 6,
-                        ),
-                        Text("சமர்ப்பி")
-                      ]),
-                )),
-            SizedBox(
-              width: 10,
-            ),
-            Container(
-                width: 130,
-                height: 40,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Share.share(
-                        'இவ்வாரத்திற்கான சவால், இந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக\n\n' +
-                            title +
-                            '\n\nhttps://thamizh-inidhu.web.app/');
-                  },
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.share),
-                        SizedBox(
-                          width: 6,
-                        ),
-                        Text("பகிர்")
-                      ]),
-                )),
-          ]),
-          const SizedBox(
-            height: 20,
-          )
-        ],
-      ),
-    );
-  }
+  Kavidhaigal(this.kavidhaigal);
 
-  showAlertDialog(BuildContext context) {
-    // set up the button
-    Widget okButton = TextButton(
-      child: Text("சரி"),
-      onPressed: () {
-        Navigator.pop(context);
-      },
-    );
+  @override
+  State<Kavidhaigal> createState() => _KavithaigalState();
+}
 
-    // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text("நன்றி"),
-      content: Text(
-          "சரி பார்க்கப்பட்டு தேர்ந்து எடுக்க பட்ட கவிதை இந்த பக்கத்தில் நாளை வரும்"),
-      actions: [
-        okButton,
-      ],
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
+class _KavithaigalState extends State<Kavidhaigal> {
+  final myController = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    return buildList(widget.kavidhaigal);
   }
 
   Widget buildList(List<QueryDocumentSnapshot> data) {
@@ -266,6 +152,116 @@ class _MyHomePageState extends State<MyHomePage> {
             return Text("Error");
           }
         });
+  }
+
+  Widget buildInteractCard(String title) {
+    return Column(children: [
+      Card(
+        margin: EdgeInsets.all(15),
+        elevation: 5,
+        child: Column(
+          children: [
+            SizedBox(
+              height: 20,
+            ),
+            Text(
+              title,
+              style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Arima Madurai'),
+            ),
+            Padding(
+                padding: EdgeInsets.all(10),
+                child: TextField(
+                  maxLines: 8,
+                  controller: myController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.teal)),
+                    hintText:
+                        'உங்கள் சிந்தனைக்கு ஒரு சவால்!! 3 வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                    helperText:
+                        'உங்கள் சிந்தனைக்கு ஒரு சவால்!! 3 வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                    helperStyle: TextStyle(fontSize: 8),
+                    labelText: 'உங்களின் கவிதை/சிந்தனை',
+                    prefixIcon: Icon(
+                      Icons.edit,
+                      color: Colors.green,
+                    ),
+                    prefixText: ' ',
+                  ),
+                )),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              SizedBox(
+                  width: 130,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      CollectionReference kavidhaigal =
+                          FirebaseFirestore.instance.collection('all');
+
+                      kavidhaigal.add({
+                        'title': title,
+                        'kavidhai': myController.text,
+                        'time': DateTime.now(),
+                      }).then((value) {
+                        setState(() {
+                          myController.clear();
+                        });
+                        showAlertDialog(context);
+                      }).catchError(
+                          (error) => print("Failed to add user: $error"));
+                    },
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.send),
+                          SizedBox(
+                            width: 6,
+                          ),
+                          Text("சமர்ப்பி")
+                        ]),
+                  )),
+              SizedBox(
+                width: 10,
+              ),
+              Container(
+                  width: 130,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Share.share(
+                          'இவ்வாரத்திற்கான சவால், இந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக\n\n' +
+                              title +
+                              '\n\nhttps://thamizh-inidhu.web.app/');
+                    },
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.share),
+                          SizedBox(
+                            width: 6,
+                          ),
+                          Text("பகிர்")
+                        ]),
+                  )),
+            ]),
+            const SizedBox(
+              height: 20,
+            )
+          ],
+        ),
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Icon(Icons.arrow_upward),
+          IconButton(onPressed: () {}, icon: Icon(Icons.av_timer_outlined)),
+          SizedBox(width: 10)
+        ],
+      )
+    ]);
   }
 
   Widget buildViewCard(QueryDocumentSnapshot data, bool? isLiked) {
@@ -352,5 +348,32 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(id, !isLiked);
     return !isLiked;
+  }
+
+  showAlertDialog(BuildContext context) {
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("சரி"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("நன்றி"),
+      content: Text(
+          "சரி பார்க்கப்பட்டு தேர்ந்து எடுக்க பட்ட கவிதை இந்த பக்கத்தில் நாளை வரும்"),
+      actions: [
+        okButton,
+      ],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 }
