@@ -17,6 +17,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  static const int HEAD_COLOR = (0xff36473D);
+  static const int BODY_COLOR = 0xff588068;
   const MyApp({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
@@ -39,15 +41,17 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
+        fontFamily: 'Arima Madurai',
+        scaffoldBackgroundColor: Color(0xfff7e9cd),
         primarySwatch:
             // Colors.red,
 
-            MaterialColor(0xFFa02725, <int, Color>{
+            MaterialColor(HEAD_COLOR, <int, Color>{
           50: Color(0xFFE3F2FD),
           100: Color(0xFFBBDEFB),
           200: Color(0xFF90CAF9),
           300: Color(0xFF64B5F6),
-          400: Color(0xFFa02725),
+          400: Color(HEAD_COLOR),
           600: Color(0xFF1E88E5),
           700: Color(0xFF1976D2),
           800: Color(0xFF1565C0),
@@ -73,6 +77,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  int titlecolor = 0xffCA9F50;
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -85,7 +91,10 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(
+          widget.title,
+          // style: TextStyle(color: Color(titlecolor)),
+        ),
         centerTitle: true,
       ),
       body: body(),
@@ -102,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
       future: kavidhaigal.orderBy('time', descending: true).get(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
-          return Text("Something went wrong");
+          return const Text("வாழ்க தமிழ்!! வளர்க தமிழ்!!");
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
@@ -187,10 +196,10 @@ class _KavithaigalState extends State<Kavidhaigal> {
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.teal)),
-                    hintText: 'மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
-                    helperText: 'மூன்று வார்த்தைகளை இணைத்து ஒரு கவிதை',
+                    // hintText: 'கவிதை',
+                    helperText: 'உங்கள் பெயரை கவிதைக்கு கீழே குறிப்பிடுக',
                     helperStyle: TextStyle(fontSize: 8),
-                    labelText: 'உங்களின் கவிதை/சிந்தனை',
+                    labelText: 'கவிதை',
                     prefixIcon: Icon(
                       Icons.edit,
                       color: Colors.green,
@@ -238,7 +247,7 @@ class _KavithaigalState extends State<Kavidhaigal> {
                   child: ElevatedButton(
                     onPressed: () {
                       Share.share(
-                          'கவிதை மீட்டி, தமிழ் வளர்ப்போம்!\nஉனக்குள் இருக்கும் கவிஞனை உசிப்பிட ஒரு அரிய வழி!\n, இந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக\n\n' +
+                          'கவிதை சமைத்து,தமிழ் சுவைப்போம்!\nஉனக்குள் இருக்கும் கவிஞனை உசிப்பிட ஒரு அரிய வழி!\nஇந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக,\n\n' +
                               title +
                               '\n\nhttps://thamizh-inidhu.web.app/');
                     },

@@ -1,11 +1,11 @@
 {
-    "name": "thamizhinidhu",
-    "short_name": "thamizhinidhu",
+    "name": "தமிழ் இனிது",
+    "short_name": "தமிழ் இனிது",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "தமிழ் சிந்தனைக்கான சவால்",
+    "description": "கவிதை சமைத்து, தமிழ் சுவைப்போம்",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
