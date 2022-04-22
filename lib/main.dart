@@ -7,51 +7,41 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:like_button/like_button.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:thamizhinidhu/Constants.dart';
 import 'package:thamizhinidhu/list.dart';
 import 'firebase_options.dart';
+import 'Constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(MyApp());
+
+  runApp(MyApp(await SharedPreferences.getInstance()));
 }
 
 class MyApp extends StatelessWidget {
-  static const int HEAD_COLOR = (0xff36473D);
-  static const int BODY_COLOR = 0xff588068;
-  const MyApp({Key? key}) : super(key: key);
+  final SharedPreferences prefs;
+  const MyApp(this.prefs, {Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'தமிழ் இனிது',
+      title: Constants.TITLE_TEXT,
       initialRoute: '/',
       routes: {
-        '/': (context) => const MyHomePage(title: 'தமிழ் இனிது'),
+        '/': (context) => MyHomePage(prefs, title: Constants.TITLE_TEXT),
         '/shortlist': (context) => const ShortlistPage(title: 'Shortlist')
       },
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         fontFamily: 'Arima Madurai',
-        scaffoldBackgroundColor: Color(0xfff7e9cd),
-        primarySwatch:
-            // Colors.red,
-
-            MaterialColor(HEAD_COLOR, <int, Color>{
+        //Now the swatch should be properly made to match this green color, but lazy to do it
+        primarySwatch: const MaterialColor(Constants.HEAD_COLOR, <int, Color>{
           50: Color(0xFFE3F2FD),
           100: Color(0xFFBBDEFB),
           200: Color(0xFF90CAF9),
           300: Color(0xFF64B5F6),
-          400: Color(HEAD_COLOR),
+          400: Color(Constants.HEAD_COLOR),
           600: Color(0xFF1E88E5),
           700: Color(0xFF1976D2),
           800: Color(0xFF1565C0),
@@ -65,12 +55,9 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   final String title;
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  static List<String> samplekavidhais = [
-    'கரி கவ்விய இருள் பொழுது\nகார் மேகம் சூழ்ந்த பெரும் காடு\n\nசிதறி பறக்கும் மின்மினி\nபதறி பேசிய ஊதா பூ ...\n\nஅந்தோ பாவம் ..   வான் தொலைத்த வின் மீன், வின்துகளாய் சிதறி போகுதே ... \n கொள்ளென்று  சிரித்தது பற்று கொடி , \n"நாளை வீழும் இந்த ஊதா பூ , வின் மீனுக்கு பாவம் பார்த்ததே"...',
-    ''
-  ];
+  final SharedPreferences prefs;
+  const MyHomePage(this.prefs, {Key? key, required this.title})
+      : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -81,16 +68,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(
           widget.title,
           // style: TextStyle(color: Color(titlecolor)),
@@ -111,27 +90,27 @@ class _MyHomePageState extends State<MyHomePage> {
       future: kavidhaigal.orderBy('time', descending: true).get(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
-          return const Text("வாழ்க தமிழ்!! வளர்க தமிழ்!!");
+          return const Center(child: Constants.INTRO_TEXT_WIDGET);
         }
-
         if (snapshot.connectionState == ConnectionState.done) {
           return buildView(snapshot.data!.docs);
         }
-        return const Center(child: Text("வாழ்க தமிழ்!! வளர்க தமிழ்!!"));
+        return const Center(child: Constants.INTRO_TEXT_WIDGET);
       },
     );
   }
 
   Widget buildView(List<QueryDocumentSnapshot> kavidhaigal) {
-    return Kavidhaigal(kavidhaigal);
+    return Kavidhaigal(kavidhaigal, widget.prefs);
   }
 }
 
 class Kavidhaigal extends StatefulWidget {
   List<QueryDocumentSnapshot> kavidhaigal;
+  final SharedPreferences? prefs;
   bool sortByLikes = false;
 
-  Kavidhaigal(this.kavidhaigal);
+  Kavidhaigal(this.kavidhaigal, this.prefs);
 
   @override
   State<Kavidhaigal> createState() => _KavithaigalState();
@@ -146,29 +125,18 @@ class _KavithaigalState extends State<Kavidhaigal> {
   }
 
   Widget buildList(List<QueryDocumentSnapshot> data) {
-    return FutureBuilder<SharedPreferences>(
-        future: SharedPreferences.getInstance(),
-        builder:
-            (BuildContext context, AsyncSnapshot<SharedPreferences> snapshot) {
-          if (snapshot.hasData) {
-            SharedPreferences? prefs = snapshot.data;
-            return ListView.builder(
-              itemCount: data.length,
-              itemBuilder: (BuildContext context, int index) {
-                return index == 0
-                    ? buildInteractCard(data[0].get('title'))
-                    : buildViewCard(
-                        data[index],
-                        prefs!.getBool(data[index].id) == null
-                            ? false
-                            : prefs.getBool(data[index].id));
-                //ListItem
-              },
-            );
-          } else {
-            return Text("Error");
-          }
-        });
+    return ListView.builder(
+      itemCount: data.length,
+      itemBuilder: (BuildContext context, int index) {
+        return index == 0
+            ? buildInteractCard(data[0].get('title'))
+            : buildViewCard(
+                data[index],
+                widget.prefs!.getBool(data[index].id) == null
+                    ? false
+                    : widget.prefs!.getBool(data[index].id));
+      },
+    );
   }
 
   Widget buildInteractCard(String title) {
@@ -197,7 +165,7 @@ class _KavithaigalState extends State<Kavidhaigal> {
                     border: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.teal)),
                     // hintText: 'கவிதை',
-                    helperText: 'உங்கள் பெயரை கவிதைக்கு கீழே குறிப்பிடுக',
+                    helperText: Constants.HELP_TEXT,
                     helperStyle: TextStyle(fontSize: 8),
                     labelText: 'கவிதை',
                     prefixIcon: Icon(
@@ -213,20 +181,7 @@ class _KavithaigalState extends State<Kavidhaigal> {
                   height: 40,
                   child: ElevatedButton(
                     onPressed: () {
-                      CollectionReference kavidhaigal =
-                          FirebaseFirestore.instance.collection('all');
-
-                      kavidhaigal.add({
-                        'title': title,
-                        'kavidhai': myController.text,
-                        'time': DateTime.now(),
-                      }).then((value) {
-                        setState(() {
-                          myController.clear();
-                        });
-                        showAlertDialog(context);
-                      }).catchError(
-                          (error) => print("Failed to add user: $error"));
+                      postKavidhai(title);
                     },
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -246,10 +201,10 @@ class _KavithaigalState extends State<Kavidhaigal> {
                   height: 40,
                   child: ElevatedButton(
                     onPressed: () {
-                      Share.share(
-                          'கவிதை சமைத்து,தமிழ் சுவைப்போம்!\nஉனக்குள் இருக்கும் கவிஞனை உசிப்பிட ஒரு அரிய வழி!\nஇந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக,\n\n' +
-                              title +
-                              '\n\nhttps://thamizh-inidhu.web.app/');
+                      Share.share(Constants.SHARE_TEXT +
+                          title +
+                          '\n\n' +
+                          Constants.WEB_URL);
                     },
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -276,7 +231,7 @@ class _KavithaigalState extends State<Kavidhaigal> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Icon(
+        const Icon(
           Icons.sort_outlined,
           size: 18,
         ),
@@ -357,7 +312,8 @@ class _KavithaigalState extends State<Kavidhaigal> {
                           Share.share(data.get('title') +
                               "\n\n" +
                               data.get('kavidhai').replaceAll("\\n", "\n") +
-                              '\n\nhttps://thamizh-inidhu.web.app/');
+                              '\n\n' +
+                              Constants.WEB_URL);
                         },
                         icon: const Icon(
                           Icons.share,
@@ -381,20 +337,12 @@ class _KavithaigalState extends State<Kavidhaigal> {
   }
 
   Future<bool> onLikeButtonTapped(bool isLiked, String id) async {
-    /// send your request here
-    // final bool success= await sendRequest();
-
-    /// if failed, you can do nothing
-    // return success? !isLiked:isLiked;
-
     CollectionReference kavidhaigal =
         FirebaseFirestore.instance.collection('shortlisted');
     kavidhaigal
         .doc(id)
         .update({'likes': FieldValue.increment(!isLiked ? 1 : -1)});
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(id, !isLiked);
+    await widget.prefs!.setBool(id, !isLiked);
     return !isLiked;
   }
 
@@ -415,9 +363,8 @@ class _KavithaigalState extends State<Kavidhaigal> {
 
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
-      title: Text("நன்றி"),
-      content: Text(
-          "சரி பார்க்கப்பட்டு தேர்ந்து எடுக்க பட்ட கவிதை இந்த பக்கத்தில் நாளை வரும்"),
+      title: const Text("நன்றி"),
+      content: const Text(Constants.INFO_AFTER_POST),
       actions: [
         okButton,
       ],
@@ -429,5 +376,27 @@ class _KavithaigalState extends State<Kavidhaigal> {
         return alert;
       },
     );
+  }
+
+  void postKavidhai(String title) async {
+    CollectionReference kavidhaigal =
+        FirebaseFirestore.instance.collection('all');
+    var localid = widget.prefs!.get('localid');
+    if (localid == null) {
+      localid = DateTime.now().millisecondsSinceEpoch;
+      await widget.prefs!.setInt('localid', localid as int);
+    }
+
+    kavidhaigal.add({
+      'title': title,
+      'kavidhai': myController.text,
+      'time': DateTime.now(),
+      'localid': localid
+    }).then((value) {
+      setState(() {
+        myController.clear();
+      });
+      showAlertDialog(context);
+    }).catchError((error) => print("Failed to add user: $error"));
   }
 }
