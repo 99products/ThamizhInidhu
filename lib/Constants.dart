@@ -4,7 +4,7 @@ class Constants {
   static const String TITLE_TEXT = 'தமிழ் இனிது';
   static const String INTRO_DEFAULT_TEXT = 'வாழ்க தமிழ்!! வளர்க தமிழ்!!';
   static const String SHARE_TEXT =
-      'கவிதை சமைத்து,தமிழ் சுவைப்போம்!\nஉனக்குள் இருக்கும் கவிஞனை உசிப்பிட ஒரு அரிய வழி!\nஇந்த மூன்று வார்த்தைகளில் ஒரு கவிதை எழுதுக,\n\n';
+      'கவிதை சமைத்து,தமிழ் சுவைப்போம்!\nநமக்குள் இருக்கும் கவிஞனை உசிப்பிட ஒரு அரிய வழி!\nஇம்மூன்று வார்த்தைகள் கொண்டு கவிதைகள் சமைப்போமா!!,\n\n';
   static const String HELP_TEXT = 'உங்கள் பெயரை கவிதைக்கு கீழே குறிப்பிடுக';
   static const Text INTRO_TEXT_WIDGET = Text(INTRO_DEFAULT_TEXT);
 
