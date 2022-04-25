@@ -141,6 +141,7 @@ class _ShortlistPageState extends State<ShortlistPage> {
           'kavidhai': data.get('kavidhai'),
           'time': data.get('time'),
           'localid': data.get('localid'),
+          'id': data.get('id'),
           'likes': 0
         }).then((value) {
           Navigator.pop(context);

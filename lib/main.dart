@@ -11,6 +11,7 @@ import 'package:thamizhinidhu/Constants.dart';
 import 'package:thamizhinidhu/list.dart';
 import 'firebase_options.dart';
 import 'Constants.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,10 @@ void main() async {
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
   const MyApp(this.prefs, {Key? key}) : super(key: key);
+
+  static FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  static FirebaseAnalyticsObserver observer =
+      FirebaseAnalyticsObserver(analytics: analytics);
 
   // This widget is the root of your application.
   @override
@@ -117,7 +122,9 @@ class Kavidhaigal extends StatefulWidget {
 }
 
 class _KavithaigalState extends State<Kavidhaigal> {
-  final myController = TextEditingController();
+  final kavidhaiController = TextEditingController();
+  final idController = TextEditingController();
+
   bool sortByLikes = false;
   @override
   Widget build(BuildContext context) {
@@ -152,15 +159,16 @@ class _KavithaigalState extends State<Kavidhaigal> {
             Text(
               title,
               style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Arima Madurai'),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Padding(
                 padding: EdgeInsets.all(10),
                 child: TextField(
                   maxLines: 8,
-                  controller: myController,
+                  controller: kavidhaiController,
+                  style: const TextStyle(fontSize: 14),
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.teal)),
@@ -170,11 +178,25 @@ class _KavithaigalState extends State<Kavidhaigal> {
                     labelText: 'கவிதை',
                     prefixIcon: Icon(
                       Icons.edit,
-                      color: Colors.green,
+                      color: Color(Constants.HEAD_COLOR),
                     ),
-                    prefixText: ' ',
                   ),
                 )),
+            Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                child: TextField(
+                    controller: idController,
+                    maxLines: 1,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(
+                        Icons.alternate_email_outlined,
+                        color: Color(Constants.HEAD_COLOR),
+                      ),
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.teal)),
+                      hintText: Constants.ID_HELP_TEXT,
+                    ))),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               SizedBox(
                   width: 130,
@@ -389,12 +411,14 @@ class _KavithaigalState extends State<Kavidhaigal> {
 
     kavidhaigal.add({
       'title': title,
-      'kavidhai': myController.text,
+      'kavidhai': kavidhaiController.text,
       'time': DateTime.now(),
-      'localid': localid
+      'localid': localid,
+      'id': idController.text,
     }).then((value) {
       setState(() {
-        myController.clear();
+        kavidhaiController.clear();
+        idController.clear();
       });
       showAlertDialog(context);
     }).catchError((error) => print("Failed to add user: $error"));
