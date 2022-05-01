@@ -6,11 +6,6 @@ class ShortlistPage extends StatefulWidget {
   final String title;
   const ShortlistPage({Key? key, required this.title}) : super(key: key);
 
-  static List<String> samplekavidhais = [
-    'கரி கவ்விய இருள் பொழுது\nகார் மேகம் சூழ்ந்த பெரும் காடு\n\nசிதறி பறக்கும் மின்மினி\nபதறி பேசிய ஊதா பூ ...\n\nஅந்தோ பாவம் ..   வான் தொலைத்த வின் மீன், வின்துகளாய் சிதறி போகுதே ... \n கொள்ளென்று  சிரித்தது பற்று கொடி , \n"நாளை வீழும் இந்த ஊதா பூ , வின் மீனுக்கு பாவம் பார்த்ததே"...',
-    ''
-  ];
-
   @override
   State<ShortlistPage> createState() => _ShortlistPageState();
 }
@@ -18,16 +13,8 @@ class ShortlistPage extends StatefulWidget {
 class _ShortlistPageState extends State<ShortlistPage> {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
         centerTitle: true,
       ),
@@ -65,8 +52,6 @@ class _ShortlistPageState extends State<ShortlistPage> {
       itemCount: data.length,
       itemBuilder: (BuildContext context, int index) {
         return buildViewCard(data[index]);
-
-        //ListItem
       },
     );
   }
@@ -119,6 +104,22 @@ class _ShortlistPageState extends State<ShortlistPage> {
                           Icons.add,
                           color: Colors.black38,
                         )),
+                    IconButton(
+                        onPressed: () {
+                          showAlertAndArchiveDialog(data, context);
+                        },
+                        icon: const Icon(
+                          Icons.archive_outlined,
+                          color: Colors.black38,
+                        )),
+                    IconButton(
+                        onPressed: () {
+                          showAlertAndEditDialog(data, context);
+                        },
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Colors.black38,
+                        )),
                     const SizedBox(
                       width: 10,
                     ),
@@ -128,27 +129,65 @@ class _ShortlistPageState extends State<ShortlistPage> {
             )));
   }
 
+  void editKavidhai(QueryDocumentSnapshot data, String editedKavidhai) {
+    CollectionReference kavidhaigal =
+        FirebaseFirestore.instance.collection('all');
+
+    kavidhaigal.doc(data.id).update({
+      'title': data.get('title'),
+      'kavidhai': editedKavidhai,
+      'time': data.get('time'),
+      'localid': data.get('localid'),
+      'id': data.get('id'),
+      'likes': 0
+    }).then((value) {
+      Navigator.pop(context);
+      setState(() {});
+    }).catchError((error) => print("Failed to add kavidhai: $error"));
+  }
+
+  void shortlistKavidhai(QueryDocumentSnapshot data) {
+    CollectionReference kavidhaigal =
+        FirebaseFirestore.instance.collection('shortlisted');
+
+    kavidhaigal.add({
+      'title': data.get('title'),
+      'kavidhai': data.get('kavidhai'),
+      'time': data.get('time'),
+      'localid': data.get('localid'),
+      'id': data.get('id'),
+      'likes': 0
+    }).then((value) {
+      Navigator.pop(context);
+      CollectionReference all = FirebaseFirestore.instance.collection('all');
+      all.doc(data.id).delete().then((value) => setState(() {}));
+    }).catchError((error) => print("Failed to add kavidhai: $error"));
+  }
+
+  void archiveKavidhai(QueryDocumentSnapshot data) {
+    CollectionReference kavidhaigal =
+        FirebaseFirestore.instance.collection('archive');
+
+    kavidhaigal.add({
+      'title': data.get('title'),
+      'kavidhai': data.get('kavidhai'),
+      'time': data.get('time'),
+      'localid': data.get('localid'),
+      'id': data.get('id'),
+      'likes': 0
+    }).then((value) {
+      Navigator.pop(context);
+      CollectionReference all = FirebaseFirestore.instance.collection('all');
+      all.doc(data.id).delete().then((value) => setState(() {}));
+    }).catchError((error) => print("Failed to archive kavidhai: $error"));
+  }
+
   showAlertAndAddDialog(QueryDocumentSnapshot data, BuildContext context) {
     // set up the button
     Widget okButton = TextButton(
       child: Text("Add"),
       onPressed: () {
-        CollectionReference kavidhaigal =
-            FirebaseFirestore.instance.collection('shortlisted');
-
-        kavidhaigal.add({
-          'title': data.get('title'),
-          'kavidhai': data.get('kavidhai'),
-          'time': data.get('time'),
-          'localid': data.get('localid'),
-          'id': data.get('id'),
-          'likes': 0
-        }).then((value) {
-          Navigator.pop(context);
-          CollectionReference all =
-              FirebaseFirestore.instance.collection('all');
-          all.doc(data.id).delete().then((value) => setState(() {}));
-        }).catchError((error) => print("Failed to add user: $error"));
+        shortlistKavidhai(data);
       },
     );
 
@@ -158,6 +197,68 @@ class _ShortlistPageState extends State<ShortlistPage> {
       content: Text("Are you sure want to add?"),
       actions: [
         okButton,
+      ],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  showAlertAndArchiveDialog(QueryDocumentSnapshot data, BuildContext context) {
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("Archive"),
+      onPressed: () {
+        archiveKavidhai(data);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Archive"),
+      content: Text("Are you sure want to Archive?"),
+      actions: [
+        okButton,
+      ],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  TextEditingController editController = TextEditingController();
+  showAlertAndEditDialog(QueryDocumentSnapshot data, BuildContext context) {
+    editController.text = data.get('kavidhai');
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("Edit"),
+      onPressed: () {
+        editKavidhai(data, editController.text);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Edit"),
+      content: TextField(
+        controller: editController,
+        maxLines: 14,
+      ),
+      actions: [
+        okButton,
+        TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("Cancel"))
       ],
     );
 
