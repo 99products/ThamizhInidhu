@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:like_button/like_button.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,14 +81,37 @@ class _MyHomePageState extends State<MyHomePage> {
           // style: TextStyle(color: Color(titlecolor)),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+              onPressed: () {
+                showInfo();
+              },
+              icon: Icon(Icons.info_outline_rounded))
+        ],
       ),
       body: body(),
     );
   }
 
+  bool infoAlreadyShown() {
+    //Should find a better way, not sure whats it
+    bool? infoshown = widget.prefs.getBool('infoshown');
+    return infoshown != null && infoshown;
+  }
+
+  showInfo() {
+    Constants.showAlertDialog(
+        context, Constants.TITLE_TEXT, Constants.INFO_TEXT);
+  }
+
   Widget body() {
     CollectionReference kavidhaigal =
         FirebaseFirestore.instance.collection('shortlisted');
+
+    if (!infoAlreadyShown()) {
+      Future.delayed(Duration.zero, () => showInfo());
+      widget.prefs.setBool('infoshown', true);
+    }
 
     return FutureBuilder<QuerySnapshot>(
       //There is a hack in the backend, where we added large like count and farther future date to get the 'current' entry as first item.
@@ -223,7 +247,7 @@ class _KavithaigalState extends State<Kavidhaigal> {
                   height: 40,
                   child: ElevatedButton(
                     onPressed: () {
-                      Share.share(Constants.SHARE_TEXT +
+                      Share.share(Constants.INFO_TEXT +
                           title +
                           '\n\n' +
                           Constants.WEB_URL);
@@ -374,32 +398,6 @@ class _KavithaigalState extends State<Kavidhaigal> {
         : b.get('time').compareTo(a.get('time')));
   }
 
-  showAlertDialog(BuildContext context) {
-    // set up the button
-    Widget okButton = TextButton(
-      child: Text("சரி"),
-      onPressed: () {
-        Navigator.pop(context);
-      },
-    );
-
-    // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: const Text("நன்றி"),
-      content: const Text(Constants.INFO_AFTER_POST),
-      actions: [
-        okButton,
-      ],
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
-  }
-
   void postKavidhai(String title) async {
     CollectionReference kavidhaigal =
         FirebaseFirestore.instance.collection('all');
@@ -420,7 +418,7 @@ class _KavithaigalState extends State<Kavidhaigal> {
         kavidhaiController.clear();
         idController.clear();
       });
-      showAlertDialog(context);
+      Constants.showAlertDialog(context, "நன்றி", Constants.INFO_AFTER_POST);
     }).catchError((error) => print("Failed to add user: $error"));
   }
 }
