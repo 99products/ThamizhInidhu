@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutterfire_ui/firestore.dart';
 import 'package:like_button/like_button.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,10 +24,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
   const MyApp(this.prefs, {Key? key}) : super(key: key);
-
-  static FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-  static FirebaseAnalyticsObserver observer =
-      FirebaseAnalyticsObserver(analytics: analytics);
 
   // This widget is the root of your application.
   @override
@@ -105,41 +101,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget body() {
-    CollectionReference kavidhaigal =
-        FirebaseFirestore.instance.collection('shortlisted');
-
     if (!infoAlreadyShown()) {
       Future.delayed(Duration.zero, () => showInfo());
       widget.prefs.setBool('infoshown', true);
     }
-
-    return FutureBuilder<QuerySnapshot>(
-      //There is a hack in the backend, where we added large like count and farther future date to get the 'current' entry as first item.
-      // if we change the orderby in future with any other parameter, do note this.
-      future: kavidhaigal.orderBy('time', descending: true).get(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return const Center(child: Constants.INTRO_TEXT_WIDGET);
-        }
-        if (snapshot.connectionState == ConnectionState.done) {
-          return buildView(snapshot.data!.docs);
-        }
-        return const Center(child: Constants.INTRO_TEXT_WIDGET);
-      },
-    );
-  }
-
-  Widget buildView(List<QueryDocumentSnapshot> kavidhaigal) {
-    return Kavidhaigal(kavidhaigal, widget.prefs);
+    return Kavidhaigal(widget.prefs);
   }
 }
 
 class Kavidhaigal extends StatefulWidget {
-  List<QueryDocumentSnapshot> kavidhaigal;
   final SharedPreferences? prefs;
   bool sortByLikes = false;
+  static FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  static FirebaseAnalyticsObserver observer =
+      FirebaseAnalyticsObserver(analytics: analytics);
 
-  Kavidhaigal(this.kavidhaigal, this.prefs);
+  Kavidhaigal(this.prefs);
 
   @override
   State<Kavidhaigal> createState() => _KavithaigalState();
@@ -152,7 +129,8 @@ class _KavithaigalState extends State<Kavidhaigal> {
   bool sortByLikes = false;
   @override
   Widget build(BuildContext context) {
-    return buildList(widget.kavidhaigal);
+    FirebaseAnalytics.instance.logAppOpen();
+    return buildInfiniteList();
   }
 
   Widget buildList(List<QueryDocumentSnapshot> data) {
@@ -162,10 +140,24 @@ class _KavithaigalState extends State<Kavidhaigal> {
         return index == 0
             ? buildInteractCard(data[0].get('title'))
             : buildViewCard(
-                data[index],
-                widget.prefs!.getBool(data[index].id) == null
-                    ? false
-                    : widget.prefs!.getBool(data[index].id));
+                data[index], widget.prefs!.getBool(data[index].id) ?? false);
+      },
+    );
+  }
+
+  Widget buildInfiniteList() {
+    final query = FirebaseFirestore.instance
+        .collection('shortlisted')
+        .orderBy(sortByLikes ? 'likes' : 'time', descending: true);
+    return FirestoreListView<Map<String, dynamic>>(
+      query: query,
+      pageSize: 10,
+      loadingBuilder: (context) => Center(child: Text(Constants.DOWNLOAD_TEXT)),
+      itemBuilder: (context, snapshot) {
+        return snapshot.id == 'current'
+            ? buildInteractCard(snapshot.get('title'))
+            : buildViewCard(
+                snapshot, widget.prefs!.getBool(snapshot.id) ?? false);
       },
     );
   }
@@ -288,6 +280,31 @@ class _KavithaigalState extends State<Kavidhaigal> {
     );
   }
 
+  Widget buildTitleDropDown(String currentTitle) {
+    return DropdownButton<String>(
+      value: currentTitle,
+      icon: const Icon(Icons.arrow_drop_down),
+      elevation: 16,
+      underline: Container(
+        height: 2,
+        color: Colors.transparent,
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          sortByLikes = (newValue == 'பிரபலம்');
+          sortKavidhaigal();
+        });
+      },
+      items: <String>['சமீபம்', 'பிரபலம்']
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    );
+  }
+
   Widget buildSortDropDown() {
     return DropdownButton<String>(
       value: sortByLikes ? 'பிரபலம்' : 'சமீபம்',
@@ -393,9 +410,9 @@ class _KavithaigalState extends State<Kavidhaigal> {
   }
 
   sortKavidhaigal() {
-    widget.kavidhaigal.sort((a, b) => sortByLikes
-        ? b.get('likes').compareTo(a.get('likes'))
-        : b.get('time').compareTo(a.get('time')));
+    // widget.kavidhaigal.sort((a, b) => sortByLikes
+    //     ? b.get('likes').compareTo(a.get('likes'))
+    //     : b.get('time').compareTo(a.get('time')));
   }
 
   void postKavidhai(String title) async {

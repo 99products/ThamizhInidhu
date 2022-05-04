@@ -11,6 +11,7 @@ class Constants {
   static const String SHARE_TEXT = 'இந்த வாரத்திற்கான மூன்று சொற்கள்';
   static const String HELP_TEXT = 'உங்கள் பெயரை கவிதைக்கு கீழே குறிப்பிடுக';
   static const String ID_HELP_TEXT = 'இன்ஸ்டாகிராம் / ட்விட்டர்  ஐடி';
+  static const String DOWNLOAD_TEXT = 'கவிதைகள் பதிவிறக்க படுகிறது!';
   static const Text INTRO_TEXT_WIDGET = Text(INTRO_DEFAULT_TEXT);
 
   static const String INFO_AFTER_POST =
