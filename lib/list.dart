@@ -96,6 +96,10 @@ class _ShortlistPageState extends State<ShortlistPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    Text(data.get('id') ?? ''),
+                    const SizedBox(
+                      width: 5,
+                    ),
                     IconButton(
                         onPressed: () {
                           showAlertAndAddDialog(data, context);
@@ -137,8 +141,8 @@ class _ShortlistPageState extends State<ShortlistPage> {
       'title': data.get('title'),
       'kavidhai': editedKavidhai,
       'time': data.get('time'),
-      'localid': data.get('localid'),
-      'id': data.get('id'),
+      'localid': data.get('localid') ?? 0,
+      'id': data.get('id') ?? 0,
       'likes': 0
     }).then((value) {
       Navigator.pop(context);
@@ -154,8 +158,8 @@ class _ShortlistPageState extends State<ShortlistPage> {
       'title': data.get('title'),
       'kavidhai': data.get('kavidhai'),
       'time': data.get('time'),
-      'localid': data.get('localid'),
-      'id': data.get('id'),
+      'localid': data.get('localid') ?? 0,
+      'id': data.get('id') ?? 0,
       'likes': 0
     }).then((value) {
       Navigator.pop(context);
@@ -172,8 +176,8 @@ class _ShortlistPageState extends State<ShortlistPage> {
       'title': data.get('title'),
       'kavidhai': data.get('kavidhai'),
       'time': data.get('time'),
-      'localid': data.get('localid'),
-      'id': data.get('id'),
+      'localid': data.get('localid') ?? 0,
+      'id': data.get('id') ?? 0,
       'likes': 0
     }).then((value) {
       Navigator.pop(context);
