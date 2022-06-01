@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -82,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 showInfo();
               },
-              icon: Icon(Icons.info_outline_rounded))
+              icon: const Icon(Icons.info_outline_rounded))
         ],
       ),
       body: body(),
@@ -306,6 +303,7 @@ class _KavithaigalState extends State<Kavidhaigal> {
   }
 
   Widget buildSortDropDown() {
+    
     return DropdownButton<String>(
       value: sortByLikes ? 'பிரபலம்' : 'சமீபம்',
       icon: const Icon(Icons.arrow_drop_down),
@@ -438,4 +436,13 @@ class _KavithaigalState extends State<Kavidhaigal> {
       Constants.showAlertDialog(context, "நன்றி", Constants.INFO_AFTER_POST);
     }).catchError((error) => print("Failed to add user: $error"));
   }
+}
+
+class Sample extends StatelessWidget{
+  @override
+  Widget build(BuildContext context) {
+
+    return Row(children: [],crossAxisAlignment: CrossAxisAlignment.start,);
+  }
+
 }
