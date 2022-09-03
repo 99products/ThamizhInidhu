@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:thamizhinidhu/Constants.dart';
 
 class ShortlistPage extends StatefulWidget {
   final String title;
+
   const ShortlistPage({Key? key, required this.title}) : super(key: key);
 
   @override
@@ -51,9 +53,83 @@ class _ShortlistPageState extends State<ShortlistPage> {
     return ListView.builder(
       itemCount: data.length,
       itemBuilder: (BuildContext context, int index) {
-        return buildViewCard(data[index]);
+        return index == 0 ? buildInteractCard() : buildViewCard(data[index]);
       },
     );
+  }
+
+  TextEditingController kavidhaiController = new TextEditingController();
+
+  Widget buildInteractCard() {
+    return Card(
+      margin: EdgeInsets.all(15),
+      elevation: 5,
+      child: Column(
+        children: [
+          SizedBox(
+            height: 20,
+          ),
+          Padding(
+              padding: EdgeInsets.all(10),
+              child: TextField(
+                maxLines: 8,
+                controller: kavidhaiController,
+                style: const TextStyle(fontSize: 14),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.teal)),
+                  // hintText: 'கவிதை',
+                  helperText: Constants.HELP_TEXT,
+                  helperStyle: TextStyle(fontSize: 8),
+                  labelText: 'கவிதை',
+                  prefixIcon: Icon(
+                    Icons.edit,
+                    color: Color(Constants.HEAD_COLOR),
+                  ),
+                ),
+              )),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            SizedBox(
+                width: 130,
+                height: 40,
+                child: ElevatedButton(
+                  onPressed: () {
+                    postTitle();
+                  },
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.send),
+                        SizedBox(
+                          width: 6,
+                        ),
+                        Text("சமர்ப்பி")
+                      ]),
+                )),
+            SizedBox(
+              width: 10,
+            ),
+          ]),
+          const SizedBox(
+            height: 20,
+          )
+        ],
+      ),
+    );
+  }
+
+  postTitle() {
+    String text = kavidhaiController.text;
+
+    CollectionReference kavidhaigal =
+        FirebaseFirestore.instance.collection('shortlisted');
+
+    kavidhaigal.doc('current').update({'title': text}).then((value) {
+      setState(() {
+        kavidhaiController.clear();
+      });
+      Constants.showAlertDialog(context, "நன்றி", Constants.INFO_AFTER_POST);
+    }).catchError((error) => print("Failed to add title: $error"));
   }
 
   Widget buildViewCard(QueryDocumentSnapshot data) {
@@ -239,6 +315,7 @@ class _ShortlistPageState extends State<ShortlistPage> {
   }
 
   TextEditingController editController = TextEditingController();
+
   showAlertAndEditDialog(QueryDocumentSnapshot data, BuildContext context) {
     editController.text = data.get('kavidhai');
     // set up the button

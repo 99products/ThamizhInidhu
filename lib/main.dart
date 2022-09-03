@@ -1,18 +1,18 @@
-import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutterfire_ui/firestore.dart';
 import 'package:like_button/like_button.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thamizhinidhu/Constants.dart';
 import 'package:thamizhinidhu/list.dart';
-import 'firebase_options.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import 'Constants.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +23,7 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
+
   const MyApp(this.prefs, {Key? key}) : super(key: key);
 
   // This widget is the root of your application.
@@ -58,6 +59,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   final String title;
   final SharedPreferences prefs;
+
   const MyHomePage(this.prefs, {Key? key, required this.title})
       : super(key: key);
 
@@ -127,6 +129,7 @@ class _KavithaigalState extends State<Kavidhaigal> {
   final idController = TextEditingController();
 
   bool sortByLikes = false;
+
   @override
   Widget build(BuildContext context) {
     FirebaseAnalytics.instance.logAppOpen();
@@ -269,6 +272,8 @@ class _KavithaigalState extends State<Kavidhaigal> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        TextButton(onPressed: () {}, child: Text('Instagram')),
+        const SizedBox(width: 10),
         const Icon(
           Icons.sort_outlined,
           size: 18,
